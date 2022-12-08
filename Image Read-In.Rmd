@@ -1,0 +1,66 @@
+---
+title: "Image Read-In"
+author: "Sabir Meah"
+date: "2022-12-08"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(jpeg)
+```
+
+```{r}
+verymild_dementia <- array(NA, dim = c(128, 128, 2240))
+for (i in 1:2240){
+  verymild_dementia[,,i] <- readJPEG(paste0(getwd(), "/Data/Very_Mild_Demented/verymild_", i, ".jpg"))
+}
+```
+
+```{r}
+mild_dementia <- array(NA, dim = c(128, 128, 896))
+for (i in 1:896){
+  mild_dementia[,,i] <- readJPEG(paste0(getwd(), "/Data/Mild_Demented/mild_", i, ".jpg"))
+}
+```
+
+```{r}
+no_dementia <- array(NA, dim = c(128, 128, 3200))
+for (i in 1:3200){
+  no_dementia[,,i] <- readJPEG(paste0(getwd(), "/Data/Non_Demented/non_", i, ".jpg"))
+}
+```
+
+```{r}
+moderate_dementia <- array(NA, dim = c(128, 128, 64))
+for (i in 1:64){
+  moderate_dementia[,,i] <- readJPEG(paste0(getwd(), "/Data/Moderate_Demented/moderate_", i, ".jpg"))
+}
+```
+
+```{r}
+class <- c(rep("No Dementia", 3200), 
+           rep("Very Mild Dementia", 2240),
+           rep("Mild Dementia", 896),
+           rep("Moderate Dementia", 64))
+```
+
+```{r}
+#dementia_data <- list(no_dementia, verymild_dementia, mild_dementia, moderate_dementia)
+dementia_data <- array(NA, dim = c(128, 128, 6403))
+dementia_data[,,1:3200] <- no_dementia
+dementia_data[,,3201:5440] <- verymild_dementia
+dementia_data[,,5441:6336] <- mild_dementia
+dementia_data[,,6337:6400] <- moderate_dementia
+```
+
+```{r}
+# Don't push this file GitHub does not like it
+saveRDS(dementia_data, file = "processed_dementia_data.rds")
+```
+
+```{r}
+saveRDS(class, file = "dementia_classes.rds")
+```
+
