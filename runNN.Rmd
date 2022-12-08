@@ -1,0 +1,57 @@
+---
+title: "runNN"
+author: "Michael Miller"
+date: "2022-12-08"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+noDemClass <- cbind(rep(1,lenNoDem),rep(0,lenNoDem))
+veryMildDemClass <- cbind(rep(0,lenVeryMildDem),rep(1,lenVeryMildDem))
+classMat <- rbind(noDemClass,veryMildDemClass)
+
+x_train <- dementia_data[,,1:(lenNoDem+lenVeryMildDem)]
+y_train <- classMat
+x_test <- dementia_data[,,1:(lenNoDem+lenVeryMildDem)]
+y_test <- classMat
+
+x_train <- array_reshape(x_train, c(nrow(x_train), img_rows, img_cols, 1))
+x_test <- array_reshape(x_test, c(nrow(x_test), img_rows, img_cols, 1))
+input_shape <- c(img_rows, img_cols, 1)
+
+batch_size <- 64
+num_classes <- 2
+epochs <- 10
+
+img_rows <- 128
+img_cols <- 128
+```
+
+```{r}
+cnn_model <- keras_model_sequential() %>%
+  layer_conv_2d(filters = 8, kernel_size = c(3,3), activation = 'relu', input_shape = input_shape) %>% 
+  layer_max_pooling_2d(pool_size = c(2, 2)) %>% 
+  layer_flatten() %>% 
+  layer_dense(units = 128, activation = 'relu') %>% 
+  layer_dense(units = num_classes, activation = 'softmax')
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

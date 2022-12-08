@@ -40,19 +40,25 @@ for (i in 1:64){
 ```
 
 ```{r}
-class <- c(rep("No Dementia", 3200), 
-           rep("Very Mild Dementia", 2240),
-           rep("Mild Dementia", 896),
-           rep("Moderate Dementia", 64))
+lenNoDem <- 3200
+lenVeryMildDem <- 2240
+lenMildDem <- 896
+lenModDem <- 64
+totalLen <- lenNoDem + lenVeryMildDem + lenMildDem + lenModDem
+
+class <- c(rep("No Dementia", lenNoDem), 
+           rep("Very Mild Dementia", lenVeryMildDem),
+           rep("Mild Dementia", lenMildDem),
+           rep("Moderate Dementia", lenModDem))
 ```
 
 ```{r}
 #dementia_data <- list(no_dementia, verymild_dementia, mild_dementia, moderate_dementia)
-dementia_data <- array(NA, dim = c(128, 128, 6403))
-dementia_data[,,1:3200] <- no_dementia
-dementia_data[,,3201:5440] <- verymild_dementia
-dementia_data[,,5441:6336] <- mild_dementia
-dementia_data[,,6337:6400] <- moderate_dementia
+dementia_data <- array(NA, dim = c(128, 128, 6400))
+dementia_data[,,1:lenNoDem] <- no_dementia
+dementia_data[,,3201:(lenNoDem + lenVeryMildDem)] <- verymild_dementia
+dementia_data[,,5441:(lenNoDem + lenVeryMildDem + lenMildDem)] <- mild_dementia
+dementia_data[,,6337:totalLen] <- moderate_dementia
 ```
 
 ```{r}
@@ -63,4 +69,26 @@ saveRDS(dementia_data, file = "processed_dementia_data.rds")
 ```{r}
 saveRDS(class, file = "dementia_classes.rds")
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
