@@ -12,30 +12,30 @@ library(jpeg)
 ```
 
 ```{r}
-verymild_dementia <- array(NA, dim = c(128, 128, 2240))
+verymild_dementia <- array(NA, dim = c(2240, 128, 128))
 for (i in 1:2240){
-  verymild_dementia[,,i] <- readJPEG(paste0(getwd(), "/Data/Very_Mild_Demented/verymild_", i, ".jpg"))
+  verymild_dementia[i,,] <- readJPEG(paste0(getwd(), "/Data/Very_Mild_Demented/verymild_", i, ".jpg"))
 }
 ```
 
 ```{r}
-mild_dementia <- array(NA, dim = c(128, 128, 896))
+mild_dementia <- array(NA, dim = c(896, 128, 128))
 for (i in 1:896){
-  mild_dementia[,,i] <- readJPEG(paste0(getwd(), "/Data/Mild_Demented/mild_", i, ".jpg"))
+  mild_dementia[i,,] <- readJPEG(paste0(getwd(), "/Data/Mild_Demented/mild_", i, ".jpg"))
 }
 ```
 
 ```{r}
-no_dementia <- array(NA, dim = c(128, 128, 3200))
+no_dementia <- array(NA, dim = c(3200, 128, 128))
 for (i in 1:3200){
-  no_dementia[,,i] <- readJPEG(paste0(getwd(), "/Data/Non_Demented/non_", i, ".jpg"))
+  no_dementia[i,,] <- readJPEG(paste0(getwd(), "/Data/Non_Demented/non_", i, ".jpg"))
 }
 ```
 
 ```{r}
-moderate_dementia <- array(NA, dim = c(128, 128, 64))
+moderate_dementia <- array(NA, dim = c(64, 128, 128))
 for (i in 1:64){
-  moderate_dementia[,,i] <- readJPEG(paste0(getwd(), "/Data/Moderate_Demented/moderate_", i, ".jpg"))
+  moderate_dementia[i,,] <- readJPEG(paste0(getwd(), "/Data/Moderate_Demented/moderate_", i, ".jpg"))
 }
 ```
 
@@ -54,11 +54,11 @@ class <- c(rep("No Dementia", lenNoDem),
 
 ```{r}
 #dementia_data <- list(no_dementia, verymild_dementia, mild_dementia, moderate_dementia)
-dementia_data <- array(NA, dim = c(128, 128, 6400))
-dementia_data[,,1:lenNoDem] <- no_dementia
-dementia_data[,,3201:(lenNoDem + lenVeryMildDem)] <- verymild_dementia
-dementia_data[,,5441:(lenNoDem + lenVeryMildDem + lenMildDem)] <- mild_dementia
-dementia_data[,,6337:totalLen] <- moderate_dementia
+dementia_data <- array(NA, dim = c(6400, 128, 128))
+dementia_data[1:lenNoDem,,] <- no_dementia
+dementia_data[3201:(lenNoDem + lenVeryMildDem),,] <- verymild_dementia
+dementia_data[5441:(lenNoDem + lenVeryMildDem + lenMildDem),,] <- mild_dementia
+dementia_data[6337:totalLen,,] <- moderate_dementia
 ```
 
 ```{r}
