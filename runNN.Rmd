@@ -10,42 +10,260 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
-noDemClass <- cbind(rep(1,lenNoDem),rep(0,lenNoDem))
-veryMildDemClass <- cbind(rep(0,lenVeryMildDem),rep(1,lenVeryMildDem))
-classMat <- rbind(noDemClass,veryMildDemClass)
+library(keras)
+```
 
-x_train <- dementia_data[,,1:(lenNoDem+lenVeryMildDem)]
-y_train <- classMat
-x_test <- dementia_data[,,1:(lenNoDem+lenVeryMildDem)]
-y_test <- classMat
+### Model 1: 3 classes with one hot encoding
+
+```{r}
+lenNoDem <- 3200
+lenVeryMildDem <- 2240
+lenMildDem <- 896
+lenModDem <- 64
+
+img_rows <- 128
+img_cols <- 128
+
+totalLen <- lenNoDem+lenVeryMildDem+lenMildDem+lenModDem
+
+noDemClass <- cbind(rep(1,lenNoDem),rep(0,lenNoDem),rep(0,lenNoDem))
+veryMildDemClass <- cbind(rep(0,lenVeryMildDem),rep(1,lenVeryMildDem),
+                          rep(0,lenVeryMildDem))
+mildModDemClass <- cbind(rep(0,lenMildDem+lenModDem),rep(0,lenMildDem+lenModDem),
+                         rep(1,lenMildDem+lenModDem))
+classMat <- rbind(noDemClass,veryMildDemClass,mildModDemClass)
+
+noDemTestIdx <- sample(lenNoDem, round(lenNoDem/4.0), replace = FALSE)
+noDemTrainIdx <- setdiff(1:lenNoDem, noDemTestIdx)
+
+veryMildDemTestIdx <- sample((lenNoDem+1):(lenNoDem+lenVeryMildDem),
+                              round(lenVeryMildDem/4.0), replace = FALSE)
+veryMildDemTrainIdx <- setdiff((lenNoDem+1):(lenNoDem+lenVeryMildDem),
+                              veryMildDemTestIdx)
+
+mildModDemTestIdx <- sample((lenNoDem+lenVeryMildDem+1):
+                          (lenNoDem+lenVeryMildDem+lenMildDem+lenModDem),
+                          round((lenMildDem+lenModDem)/4.0), replace = FALSE)
+mildModDemTrainIdx <- setdiff((lenNoDem+lenVeryMildDem+1):
+                          (lenNoDem+lenVeryMildDem+lenMildDem+lenModDem),
+                          mildModDemTestIdx)
+
+x_train <- dementia_data[c(noDemTrainIdx,veryMildDemTrainIdx,
+                           mildModDemTrainIdx),,]
+y_train <- classMat[c(noDemTrainIdx,veryMildDemTrainIdx,
+                      mildModDemTrainIdx),]
+x_test <- dementia_data[c(noDemTestIdx,veryMildDemTestIdx,
+                          mildModDemTestIdx),,]
+y_test <- classMat[c(noDemTestIdx,veryMildDemTestIdx,
+                     mildModDemTestIdx),]
+
+shuffleIdx <- sample(1:round(3.0*totalLen/4.0))
+x_train <- x_train[shuffleIdx,,]
+y_train <- y_train[shuffleIdx,]
 
 x_train <- array_reshape(x_train, c(nrow(x_train), img_rows, img_cols, 1))
 x_test <- array_reshape(x_test, c(nrow(x_test), img_rows, img_cols, 1))
 input_shape <- c(img_rows, img_cols, 1)
 
-batch_size <- 64
-num_classes <- 2
-epochs <- 10
-
-img_rows <- 128
-img_cols <- 128
+batch_size <- 32
+num_classes <- 3
+epochs <- 30
 ```
 
 ```{r}
 cnn_model <- keras_model_sequential() %>%
-  layer_conv_2d(filters = 8, kernel_size = c(3,3), activation = 'relu', input_shape = input_shape) %>% 
+  layer_conv_2d(filters = 64, kernel_size = c(3,3), activation = 'relu', input_shape = input_shape) %>% 
   layer_max_pooling_2d(pool_size = c(2, 2)) %>% 
+  layer_conv_2d(filters = 32, kernel_size = c(3,3), activation = 'relu', input_shape = input_shape) %>% 
+  layer_max_pooling_2d(pool_size = c(2, 2)) %>% 
+  layer_dropout(rate = 0.25) %>% 
   layer_flatten() %>% 
-  layer_dense(units = 128, activation = 'relu') %>% 
+  layer_dense(units = 128, activation = 'relu',kernel_regularizer=regularizer_l1_l2(l1=1e-4,l2=1e-5),) %>%
+  layer_dropout(rate = 0.25) %>% 
   layer_dense(units = num_classes, activation = 'softmax')
+
+cnn_model %>% compile(
+  loss = loss_categorical_crossentropy,
+  optimizer = optimizer_adam(),
+  metrics = c('accuracy')
+)
+
+cnn_history <- cnn_model %>% fit(
+  x_train, y_train,
+  batch_size = batch_size,
+  epochs = epochs,
+  validation_split = 0.2
+)
 ```
 
+### Process Model 1 Results
 
+```{r}
+predictProbs = keras_predict(cnn_model, x_test)
+predictClass <- matrix(NA, nrow = nrow(x_test), ncol = num_classes)
+for (i in 1:nrow(x_test)) {
+  classVec <- rep(0, num_classes)
+  classVec[which(predictProbs[i,] == max(predictProbs[i,]))] <- 1
+  predictClass[i,] <- classVec
+}
 
+testAccuracyNoDem <- 0.0
+testAccuracyVeryMildDem <- 0.0
+testAccuracyMildModDem <- 0.0
 
+diffMat <- y_test - predictClass
 
+for (i in 1:length(noDemTestIdx)) {
+  testAccuracyNoDem <- testAccuracyNoDem+ifelse(min(diffMat[i,]) == 0,1,0)
+}
+for (i in 1:length(veryMildDemTestIdx)) {
+  testAccuracyVeryMildDem <- testAccuracyVeryMildDem+ifelse(min(diffMat[length(noDemTestIdx)+i,]) == 0,1,0)
+}
+for (i in 1:length(mildModDemTestIdx)) {
+  testAccuracyMildModDem <- testAccuracyMildModDem+ifelse(min(diffMat[length(noDemTestIdx)+length(veryMildDemTestIdx)+i,]) == 0,1,0)
+}
 
+testAccuracyNoDem <- testAccuracyNoDem/length(noDemTestIdx)
+testAccuracyVeryMildDem <- testAccuracyVeryMildDem/length(veryMildDemTestIdx)
+testAccuracyMildModDem <- testAccuracyMildModDem/length(mildModDemTestIdx)
 
+resModel1 <- data.frame("No Dementia" = testAccuracyNoDem,
+                        "Very Mild Dementia" = testAccuracyVeryMildDem,
+                        "Mild/Moderate Dementia" = testAccuracyMildModDem)
+knitr::kable(resModel1)
+```
+
+### Model 2: 4 classes with one hot encoding
+
+```{r}
+lenNoDem <- 3200
+lenVeryMildDem <- 2240
+lenMildDem <- 896
+lenModDem <- 64
+
+img_rows <- 128
+img_cols <- 128
+
+totalLen <- lenNoDem+lenVeryMildDem+lenMildDem+lenModDem
+
+noDemClass <- cbind(rep(1,lenNoDem),rep(0,lenNoDem),rep(0,lenNoDem),rep(0,lenNoDem))
+veryMildDemClass <- cbind(rep(0,lenVeryMildDem),rep(1,lenVeryMildDem),rep(0,lenVeryMildDem),rep(0,lenVeryMildDem))
+mildDemClass <- cbind(rep(0,lenMildDem),rep(0,lenMildDem),rep(1,lenMildDem),rep(0,lenMildDem))
+modDemClass <- cbind(rep(0,lenModDem),rep(0,lenModDem),rep(0,lenModDem),rep(1,lenModDem))
+classMat <- rbind(noDemClass,veryMildDemClass,mildDemClass,modDemClass)
+
+noDemTestIdx <- sample(lenNoDem, round(lenNoDem/4.0), replace = FALSE)
+noDemTrainIdx <- setdiff(1:lenNoDem, noDemTestIdx)
+
+veryMildDemTestIdx <- sample((lenNoDem+1):(lenNoDem+lenVeryMildDem),
+                              round(lenVeryMildDem/4.0), replace = FALSE)
+veryMildDemTrainIdx <- setdiff((lenNoDem+1):(lenNoDem+lenVeryMildDem),
+                              veryMildDemTestIdx)
+
+mildDemTestIdx <- sample((lenNoDem+lenVeryMildDem+1):
+                          (lenNoDem+lenVeryMildDem+lenMildDem),
+                          round(lenMildDem/4.0), replace = FALSE)
+mildDemTrainIdx <- setdiff((lenNoDem+lenVeryMildDem+1):
+                          (lenNoDem+lenVeryMildDem+lenMildDem),
+                          mildDemTestIdx)
+
+modDemTestIdx <- sample((lenNoDem+lenVeryMildDem+lenMildDem+1):
+                        (lenNoDem+lenVeryMildDem+lenMildDem+lenModDem),
+                        round(lenModDem/4.0), replace = FALSE)
+modDemTrainIdx <- setdiff((lenNoDem+lenVeryMildDem+lenMildDem+1):
+                          (lenNoDem+lenVeryMildDem+lenMildDem+lenModDem),
+                          modDemTestIdx)
+
+x_train <- dementia_data[c(noDemTrainIdx,veryMildDemTrainIdx,
+                           mildDemTrainIdx,modDemTrainIdx),,]
+y_train <- classMat[c(noDemTrainIdx,veryMildDemTrainIdx,
+                      mildDemTrainIdx,modDemTrainIdx),]
+x_test <- dementia_data[c(noDemTestIdx,veryMildDemTestIdx,
+                          mildDemTestIdx,modDemTestIdx),,]
+y_test <- classMat[c(noDemTestIdx,veryMildDemTestIdx,
+                     mildDemTestIdx,modDemTestIdx),]
+
+shuffleIdx <- sample(1:round(3.0*totalLen/4.0))
+x_train <- x_train[shuffleIdx,,]
+y_train <- y_train[shuffleIdx,]
+
+x_train <- array_reshape(x_train, c(nrow(x_train), img_rows, img_cols, 1))
+x_test <- array_reshape(x_test, c(nrow(x_test), img_rows, img_cols, 1))
+input_shape <- c(img_rows, img_cols, 1)
+
+batch_size <- 32
+num_classes <- 4
+epochs <- 30
+```
+
+```{r}
+cnn_model <- keras_model_sequential() %>%
+  layer_conv_2d(filters = 64, kernel_size = c(3,3), activation = 'relu', input_shape = input_shape) %>% 
+  layer_max_pooling_2d(pool_size = c(2, 2)) %>% 
+  layer_conv_2d(filters = 32, kernel_size = c(3,3), activation = 'relu', input_shape = input_shape) %>% 
+  layer_max_pooling_2d(pool_size = c(2, 2)) %>% 
+  layer_dropout(rate = 0.25) %>% 
+  layer_flatten() %>% 
+  layer_dense(units = 128, activation = 'relu',kernel_regularizer=regularizer_l1_l2(l1=1e-4,l2=1e-5),) %>%
+  layer_dropout(rate = 0.25) %>% 
+  layer_dense(units = num_classes, activation = 'softmax')
+
+cnn_model %>% compile(
+  loss = loss_categorical_crossentropy,
+  optimizer = optimizer_adam(),
+  metrics = c('accuracy')
+)
+
+cnn_history <- cnn_model %>% fit(
+  x_train, y_train,
+  batch_size = batch_size,
+  epochs = epochs,
+  validation_split = 0.2
+)
+```
+
+### Process Model 2 Results
+
+```{r}
+predictProbs = keras_predict(cnn_model, x_test)
+predictClass <- matrix(NA, nrow = nrow(x_test), ncol = num_classes)
+for (i in 1:nrow(x_test)) {
+  classVec <- rep(0, num_classes)
+  classVec[which(predictProbs[i,] == max(predictProbs[i,]))] <- 1
+  predictClass[i,] <- classVec
+}
+
+testAccuracyNoDem <- 0.0
+testAccuracyVeryMildDem <- 0.0
+testAccuracyMildDem <- 0.0
+testAccuracyModDem <- 0.0
+
+diffMat <- y_test - predictClass
+
+for (i in 1:length(noDemTestIdx)) {
+  testAccuracyNoDem <- testAccuracyNoDem+ifelse(min(diffMat[i,]) == 0,1,0)
+}
+for (i in 1:length(veryMildDemTestIdx)) {
+  testAccuracyVeryMildDem <- testAccuracyVeryMildDem+ifelse(min(diffMat[length(noDemTestIdx)+i,]) == 0,1,0)
+}
+for (i in 1:length(mildDemTestIdx)) {
+  testAccuracyMildDem <- testAccuracyMildDem+ifelse(min(diffMat[length(noDemTestIdx)+length(veryMildDemTestIdx)+i,]) == 0,1,0)
+}
+for (i in 1:length(modDemTestIdx)) {
+  testAccuracyModDem <- testAccuracyModDem+ifelse(min(diffMat[length(noDemTestIdx)+length(veryMildDemTestIdx)+length(mildDemTestIdx)+i,]) == 0,1,0)
+}
+
+testAccuracyNoDem <- testAccuracyNoDem/length(noDemTestIdx)
+testAccuracyVeryMildDem <- testAccuracyVeryMildDem/length(veryMildDemTestIdx)
+testAccuracyMildDem <- testAccuracyMildDem/length(mildDemTestIdx)
+testAccuracyModDem <- testAccuracyModDem/length(modDemTestIdx)
+
+resModel2 <- data.frame("No Dementia" = testAccuracyNoDem,
+                        "Very Mild Dementia" = testAccuracyVeryMildDem,
+                        "Mild Dementia" = testAccuracyMildDem,
+                        "Moderate Dementia" = testAccuracyModDem)
+knitr::kable(resModel2)
+```
 
 
 

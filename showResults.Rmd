@@ -1,0 +1,26 @@
+---
+title: "showResults"
+author: "Michael Miller"
+date: "2022-12-09"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+resModel1 <- data.frame("No Dementia" = 0.925,
+                        "Very Mild Dementia" = 0.9375,
+                        "Mild/Moderate Dementia" = 0.9458)
+knitr::kable(resModel1)
+```
+
+```{r}
+resModel2 <- data.frame("No Dementia" = 0.9788,
+                        "Very Mild Dementia" = 0.966,
+                        "Mild Dementia" = 0.9196,
+                        "Moderate Dementia" = 1.0)
+knitr::kable(resModel2)
+```
+
