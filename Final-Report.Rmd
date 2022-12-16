@@ -22,7 +22,7 @@ We decided to use an Alzheimer’s MRI imaging dataset from Kaggle. The data inc
 
 # Data Read-In
 
-We read in the 128x128 images from .jpg files to three dimensional arrays
+We read in the 128x128 images from .jpg files to three dimensional arrays, with the first element coresponding to the index 
 
 ```{r}
 no_dementia <- array(NA, dim = c(3200, 128, 128))
@@ -91,14 +91,11 @@ img_cols <- 128
 
 totalLen <- lenNoDem+lenVeryMildDem+lenMildDem+lenModDem
 
-noDemClass <- cbind(rep(1,lenNoDem),
-                    rep(0,lenNoDem),
+noDemClass <- cbind(rep(1,lenNoDem), rep(0,lenNoDem),
                     rep(0,lenNoDem))
-veryMildDemClass <- cbind(rep(0,lenVeryMildDem),
-                          rep(1,lenVeryMildDem),
+veryMildDemClass <- cbind(rep(0,lenVeryMildDem), rep(1,lenVeryMildDem),
                           rep(0,lenVeryMildDem))
-mildModDemClass <- cbind(rep(0,lenMildDem+lenModDem),
-                         rep(0,lenMildDem+lenModDem),
+mildModDemClass <- cbind(rep(0,lenMildDem+lenModDem), rep(0,lenMildDem+lenModDem),
                          rep(1,lenMildDem+lenModDem))
 classMat <- rbind(noDemClass,
                   veryMildDemClass,
@@ -141,35 +138,30 @@ num_classes <- 3
 epochs <- 100
 ```
 
-```{r, cache = TRUE}
-cnn_model <- keras_model_sequential() %>%
-  layer_conv_2d(filters = 64, 
-                kernel_size = c(3,3), 
-                activation = 'relu', 
-                input_shape = input_shape) %>% 
+```{r, eval = FALSE}
+mod1 <- keras_model_sequential() %>%
+  layer_conv_2d(filters = 64, kernel_size = c(3,3), 
+                activation = 'relu', input_shape = input_shape) %>% 
   layer_max_pooling_2d(pool_size = c(2, 2)) %>% 
   layer_dropout(rate = 0.25) %>% 
-  layer_conv_2d(filters = 64, 
-                kernel_size = c(3,3), 
-                activation = 'relu', 
-                input_shape = input_shape) %>% 
+  layer_conv_2d(filters = 64, kernel_size = c(3,3), 
+                activation = 'relu', input_shape = input_shape) %>% 
   layer_max_pooling_2d(pool_size = c(2, 2)) %>% 
   layer_dropout(rate = 0.25) %>% 
   layer_flatten() %>% 
-  layer_dense(units = 128, 
-              activation = 'relu',
+  layer_dense(units = 128, activation = 'relu',
               kernel_regularizer=regularizer_l1_l2(l1=1e-4,l2=1e-5)) %>%
   layer_dropout(rate = 0.25) %>% 
   layer_dense(units = num_classes, 
               activation = 'softmax')
 
-cnn_model %>% compile(
+mod1 %>% compile(
   loss = loss_categorical_crossentropy,
   optimizer = optimizer_adam(),
   metrics = c('accuracy')
 )
 
-cnn_history <- cnn_model %>% fit(
+cnn_history <- mod1 %>% fit(
   x_train, y_train,
   batch_size = batch_size,
   epochs = epochs,
@@ -177,10 +169,22 @@ cnn_history <- cnn_model %>% fit(
 )
 ```
 
+```{r, eval = FALSE}
+# Predict on the test data
+predictProbs = predict(mod1, x_test)
+```
+
+```{r, eval = FALSE}
+saveRDS(predictProbs, file = "predict_mod1.Rds")
+```
+
 # Process Model 1 Results
 
 ```{r}
-predictProbs = predict(cnn_model, x_test)
+predictProbs = readRDS("predict_mod1.Rds")
+```
+
+```{r}
 predictClass <- matrix(NA, nrow = nrow(x_test), ncol = num_classes)
 for (i in 1:nrow(x_test)) {
   classVec <- rep(0, num_classes)
@@ -229,27 +233,19 @@ img_cols <- 128
 
 totalLen <- lenNoDem+lenVeryMildDem+lenMildDem+lenModDem
 
-noDemClass <- cbind(rep(1,lenNoDem),
-                    rep(0,lenNoDem),
-                    rep(0,lenNoDem),
-                    rep(0,lenNoDem))
-veryMildDemClass <- cbind(rep(0,lenVeryMildDem),
-                          rep(1,lenVeryMildDem),
-                          rep(0,lenVeryMildDem),
-                          rep(0,lenVeryMildDem))
-mildDemClass <- cbind(rep(0,lenMildDem),
-                      rep(0,lenMildDem),
-                      rep(1,lenMildDem),
-                      rep(0,lenMildDem))
-modDemClass <- cbind(rep(0,lenModDem)
-                     ,rep(0,lenModDem)
-                     ,rep(0,lenModDem),
-                     rep(1,lenModDem))
-classMat <- rbind(noDemClass,
-                  veryMildDemClass,
-                  mildDemClass,
-                  modDemClass)
+noDemClass <- cbind(rep(1,lenNoDem), rep(0,lenNoDem),
+                    rep(0,lenNoDem), rep(0,lenNoDem))
+veryMildDemClass <- cbind(rep(0,lenVeryMildDem), rep(1,lenVeryMildDem),
+                          rep(0,lenVeryMildDem), rep(0,lenVeryMildDem))
+mildDemClass <- cbind(rep(0,lenMildDem) ,rep(0,lenMildDem),
+                      rep(1,lenMildDem), rep(0,lenMildDem))
+modDemClass <- cbind(rep(0,lenModDem), rep(0,lenModDem),
+                     rep(0,lenModDem), rep(1,lenModDem))
+classMat <- rbind(noDemClass, veryMildDemClass,
+                  mildDemClass, modDemClass)
+```
 
+```{r, echo = FALSE}
 noDemTestIdx <- sample(lenNoDem, round(lenNoDem/4.0), replace = FALSE)
 noDemTrainIdx <- setdiff(1:lenNoDem, noDemTestIdx)
 
@@ -294,8 +290,8 @@ num_classes <- 4
 epochs <- 100
 ```
 
-```{r}
-cnn_model <- keras_model_sequential() %>%
+```{r, eval = FALSE, echo = FALSE}
+mod2 <- keras_model_sequential() %>%
   layer_conv_2d(filters = 64, 
                 kernel_size = c(3,3), 
                 activation = 'relu', 
@@ -316,13 +312,13 @@ cnn_model <- keras_model_sequential() %>%
   layer_dense(units = num_classes, 
               activation = 'softmax')
 
-cnn_model %>% compile(
+mod2 %>% compile(
   loss = loss_categorical_crossentropy,
   optimizer = optimizer_adam(),
   metrics = c('accuracy')
 )
 
-cnn_history <- cnn_model %>% fit(
+cnn_history <- mod2 %>% fit(
   x_train, y_train,
   batch_size = batch_size,
   epochs = epochs,
@@ -330,10 +326,22 @@ cnn_history <- cnn_model %>% fit(
 )
 ```
 
+```{r, eval = FALSE}
+# Predict on the test data
+predictProbs = predict(mod2, x_test)
+```
+
+```{r, eval = FALSE}
+saveRDS(predictProbs, file = "predict_mod2.Rds")
+```
+
 # Process Model 2 Results
 
 ```{r}
-predictProbs = predict(cnn_model, x_test)
+predictProbs = readRDS("predict_mod2.Rds")
+```
+
+```{r}
 predictClass <- matrix(NA, nrow = nrow(x_test), ncol = num_classes)
 for (i in 1:nrow(x_test)) {
   classVec <- rep(0, num_classes)
@@ -352,13 +360,18 @@ for (i in 1:length(noDemTestIdx)) {
   testAccuracyNoDem <- testAccuracyNoDem+ifelse(min(diffMat[i,]) == 0,1,0)
 }
 for (i in 1:length(veryMildDemTestIdx)) {
-  testAccuracyVeryMildDem <- testAccuracyVeryMildDem+ifelse(min(diffMat[length(noDemTestIdx)+i,]) == 0,1,0)
+  testAccuracyVeryMildDem <- testAccuracyVeryMildDem + 
+    ifelse(min(diffMat[length(noDemTestIdx)+i,]) == 0,1,0)
 }
 for (i in 1:length(mildDemTestIdx)) {
-  testAccuracyMildDem <- testAccuracyMildDem+ifelse(min(diffMat[length(noDemTestIdx)+length(veryMildDemTestIdx)+i,]) == 0,1,0)
+  testAccuracyMildDem <- testAccuracyMildDem + 
+    ifelse(min(diffMat[length(noDemTestIdx) + 
+                         length(veryMildDemTestIdx)+i,]) == 0,1,0)
 }
 for (i in 1:length(modDemTestIdx)) {
-  testAccuracyModDem <- testAccuracyModDem+ifelse(min(diffMat[length(noDemTestIdx)+length(veryMildDemTestIdx)+length(mildDemTestIdx)+i,]) == 0,1,0)
+  testAccuracyModDem <- testAccuracyModDem + 
+    ifelse(min(diffMat[length(noDemTestIdx)+length(veryMildDemTestIdx)+
+                         length(mildDemTestIdx)+i,]) == 0,1,0)
 }
 
 testAccuracyNoDem <- testAccuracyNoDem/length(noDemTestIdx)
