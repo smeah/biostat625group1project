@@ -62,15 +62,9 @@ lenVeryMildDem <- 2240
 lenMildDem <- 896
 lenModDem <- 64
 totalLen <- lenNoDem + lenVeryMildDem + lenMildDem + lenModDem
-
-class <- c(rep("No Dementia", lenNoDem), 
-           rep("Very Mild Dementia", lenVeryMildDem),
-           rep("Mild Dementia", lenMildDem),
-           rep("Moderate Dementia", lenModDem))
 ```
 
 ```{r}
-#dementia_data <- list(no_dementia, verymild_dementia, mild_dementia, moderate_dementia)
 dementia_data <- array(NA, dim = c(6400, 128, 128))
 dementia_data[1:lenNoDem,,] <- no_dementia
 dementia_data[3201:(lenNoDem + lenVeryMildDem),,] <- verymild_dementia
@@ -79,6 +73,8 @@ dementia_data[6337:totalLen,,] <- moderate_dementia
 ```
 
 # Model 1: 3 classes with one hot encoding
+
+For the first model we treat
 
 ```{r}
 lenNoDem <- 3200
@@ -89,8 +85,8 @@ lenModDem <- 64
 img_rows <- 128
 img_cols <- 128
 
+# Set up class indicators. One hot encoding for the three classes
 totalLen <- lenNoDem+lenVeryMildDem+lenMildDem+lenModDem
-
 noDemClass <- cbind(rep(1,lenNoDem), rep(0,lenNoDem),
                     rep(0,lenNoDem))
 veryMildDemClass <- cbind(rep(0,lenVeryMildDem), rep(1,lenVeryMildDem),
@@ -101,6 +97,8 @@ classMat <- rbind(noDemClass,
                   veryMildDemClass,
                   mildModDemClass)
 
+# Stratify sampling by class to ensure that classes are proportionally represented
+# in the training and testing data sets
 noDemTestIdx <- sample(lenNoDem, round(lenNoDem/4.0), replace = FALSE)
 noDemTrainIdx <- setdiff(1:lenNoDem, noDemTestIdx)
 
@@ -125,10 +123,12 @@ x_test <- dementia_data[c(noDemTestIdx,veryMildDemTestIdx,
 y_test <- classMat[c(noDemTestIdx,veryMildDemTestIdx,
                      mildModDemTestIdx),]
 
+# Shuffle training data because keras does not shuffle before taking validation set
 shuffleIdx <- sample(1:round(3.0*totalLen/4.0))
 x_train <- x_train[shuffleIdx,,]
 y_train <- y_train[shuffleIdx,]
 
+# Reshape into tensor form in order to be compatible with keras
 x_train <- array_reshape(x_train, c(nrow(x_train), img_rows, img_cols, 1))
 x_test <- array_reshape(x_test, c(nrow(x_test), img_rows, img_cols, 1))
 input_shape <- c(img_rows, img_cols, 1)
@@ -185,6 +185,7 @@ predictProbs = readRDS("predict_mod1.Rds")
 ```
 
 ```{r}
+# Calculate class predictions using the softmax probabilities
 predictClass <- matrix(NA, nrow = nrow(x_test), ncol = num_classes)
 for (i in 1:nrow(x_test)) {
   classVec <- rep(0, num_classes)
@@ -198,6 +199,8 @@ testAccuracyMildModDem <- 0.0
 
 diffMat <- y_test - predictClass
 
+# Model correctly predicts class iff the difference in the predicted and actual
+# class vectors has a minimum of zero. -1 means that you predicted the wrong class.
 for (i in 1:length(noDemTestIdx)) {
   testAccuracyNoDem <- testAccuracyNoDem+ifelse(min(diffMat[i,]) == 0,1,0)
 }
@@ -231,6 +234,7 @@ lenModDem <- 64
 img_rows <- 128
 img_cols <- 128
 
+# Set up class indicators. One hot encoding for the four classes.
 totalLen <- lenNoDem+lenVeryMildDem+lenMildDem+lenModDem
 
 noDemClass <- cbind(rep(1,lenNoDem), rep(0,lenNoDem),
