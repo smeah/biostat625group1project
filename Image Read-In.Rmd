@@ -12,6 +12,13 @@ library(jpeg)
 ```
 
 ```{r}
+no_dementia <- array(NA, dim = c(3200, 128, 128))
+for (i in 1:3200){
+  no_dementia[i,,] <- readJPEG(paste0(getwd(), "/Data/Non_Demented/non_", i, ".jpg"))
+}
+```
+
+```{r}
 verymild_dementia <- array(NA, dim = c(2240, 128, 128))
 for (i in 1:2240){
   verymild_dementia[i,,] <- readJPEG(paste0(getwd(), "/Data/Very_Mild_Demented/verymild_", i, ".jpg"))
@@ -22,13 +29,6 @@ for (i in 1:2240){
 mild_dementia <- array(NA, dim = c(896, 128, 128))
 for (i in 1:896){
   mild_dementia[i,,] <- readJPEG(paste0(getwd(), "/Data/Mild_Demented/mild_", i, ".jpg"))
-}
-```
-
-```{r}
-no_dementia <- array(NA, dim = c(3200, 128, 128))
-for (i in 1:3200){
-  no_dementia[i,,] <- readJPEG(paste0(getwd(), "/Data/Non_Demented/non_", i, ".jpg"))
 }
 ```
 
