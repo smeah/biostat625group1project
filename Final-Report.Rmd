@@ -15,14 +15,13 @@ set.seed(7423)
 
 # Introduction
 
-Alzheimer's disease is
+Alzheimer's disease is the most common cause of dementia and the 6th leading cause of death in American adults (Alzheimer's Association; CDC).  Despite its large impact on the American populace, the science of its etiology is rapidly evolving and many things about it are still not understood.  Alzheimer's disease is typically diagnosed through clinical evaluation, as dementia is a disease defined by its symptoms, not underlying biological phenomena, but more recently, radiology, such as CT scans, PET scans, and MRIs can inform and support a clinical Alzheimer's disease diagnosis.  
 
-We decided to use an Alzheimer’s MRI imaging dataset from Kaggle. The data includes a total of 6400 MRI images from individuals classified into four stages: no dementia, very mild dementia, mild dementia, and moderate dementia.  Each MRI result is a 128x128 .jpg image.  The images have been preprocessed so that they are of a standard form and orientation, but we still will need to do the step of processing the data and gray scale standardization from .jpg images into a tabular format suitable for standard R functions.
-
+On that line of thinking, we set off to create a machine learning model that can accurately predict the presence of Alzheimer's disease from MRI imaging.  We used an Alzheimer’s MRI imaging dataset from Kaggle. The data includes a total of 6400 MRI images from individuals classified into four stages: no dementia, very mild dementia, mild dementia, and moderate dementia.  Each MRI result is a 128x128 .jpg image.  The images have been preprocessed so that they are of a standard form and orientation, but we still will need to do the step of processing the data and gray scale standardization from .jpg images into a tabular format suitable for standard R functions.
 
 # Data Read-In
 
-We read in the 128x128 images from .jpg files to three dimensional arrays, with the first element coresponding to the index 
+We read in the 128x128 images from .jpg files to three dimensional arrays, with the first dimension corresponding to the index of each image, then the latter two to greyscale pixel values, which we extracted using the `readJPEG()` function from the `jpeg` package.  
 
 ```{r}
 no_dementia <- array(NA, dim = c(3200, 128, 128))
@@ -70,7 +69,6 @@ class <- c(rep("No Dementia", lenNoDem),
 ```
 
 ```{r}
-#dementia_data <- list(no_dementia, verymild_dementia, mild_dementia, moderate_dementia)
 dementia_data <- array(NA, dim = c(6400, 128, 128))
 dementia_data[1:lenNoDem,,] <- no_dementia
 dementia_data[3201:(lenNoDem + lenVeryMildDem),,] <- verymild_dementia
