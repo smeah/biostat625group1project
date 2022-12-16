@@ -341,7 +341,7 @@ saveRDS(predictProbs, file = "predict_mod2.Rds")
 predictProbs = readRDS("predict_mod2.Rds")
 ```
 
-```{r}
+```{r, echo = FALSE}
 predictClass <- matrix(NA, nrow = nrow(x_test), ncol = num_classes)
 for (i in 1:nrow(x_test)) {
   classVec <- rep(0, num_classes)
