@@ -73,7 +73,7 @@ dementia_data[6337:totalLen,,] <- moderate_dementia
 
 # Model 1: 3 classes with one hot encoding
 
-For the first model we treat
+For the first model we combined the mild dementia and moderate dementia cases, resulting in three distinct classes.
 
 ```{r}
 lenNoDem <- 3200
@@ -106,12 +106,22 @@ veryMildDemTestIdx <- sample((lenNoDem+1):(lenNoDem+lenVeryMildDem),
 veryMildDemTrainIdx <- setdiff((lenNoDem+1):(lenNoDem+lenVeryMildDem),
                               veryMildDemTestIdx)
 
-mildModDemTestIdx <- sample((lenNoDem+lenVeryMildDem+1):
+mildDemTestIdx <- sample((lenNoDem+lenVeryMildDem+1):
+                          (lenNoDem+lenVeryMildDem+lenMildDem),
+                          round((lenMildDem)/4.0), replace = FALSE)
+mildDemTrainIdx <- setdiff((lenNoDem+lenVeryMildDem+1):
+                          (lenNoDem+lenVeryMildDem+lenMildDem),
+                          mildDemTestIdx)
+
+modDemTestIdx <- sample((lenNoDem+lenVeryMildDem+lenMildDem+1):
+                        (lenNoDem+lenVeryMildDem+lenMildDem+lenModDem),
+                         round((lenModDem)/4.0), replace = FALSE)
+modDemTrainIdx <- setdiff((lenNoDem+lenVeryMildDem+lenMildDem+1):
                           (lenNoDem+lenVeryMildDem+lenMildDem+lenModDem),
-                          round((lenMildDem+lenModDem)/4.0), replace = FALSE)
-mildModDemTrainIdx <- setdiff((lenNoDem+lenVeryMildDem+1):
-                          (lenNoDem+lenVeryMildDem+lenMildDem+lenModDem),
-                          mildModDemTestIdx)
+                           modDemTestIdx)
+
+mildModDemTrainIdx <- c(mildDemTrainIdx,modDemTrainIdx)
+mildModDemTestIdx <- c(mildDemTrainIdx,modDemTrainIdx)
 
 x_train <- dementia_data[c(noDemTrainIdx,veryMildDemTrainIdx,
                            mildModDemTrainIdx),,]
@@ -134,7 +144,7 @@ input_shape <- c(img_rows, img_cols, 1)
 
 batch_size <- 32
 num_classes <- 3
-epochs <- 100
+epochs <- 10
 ```
 
 ```{r, eval = FALSE}
@@ -224,6 +234,8 @@ knitr::kable(resModel1)
 
 # Model 2: 4 classes with one hot encoding
 
+For the first model we had represented mild dementia and moderate dementia with separate classes, resulting in four distinct classes.
+
 ```{r}
 lenNoDem <- 3200
 lenVeryMildDem <- 2240
@@ -249,28 +261,6 @@ classMat <- rbind(noDemClass, veryMildDemClass,
 ```
 
 ```{r, echo = FALSE}
-noDemTestIdx <- sample(lenNoDem, round(lenNoDem/4.0), replace = FALSE)
-noDemTrainIdx <- setdiff(1:lenNoDem, noDemTestIdx)
-
-veryMildDemTestIdx <- sample((lenNoDem+1):(lenNoDem+lenVeryMildDem),
-                              round(lenVeryMildDem/4.0), replace = FALSE)
-veryMildDemTrainIdx <- setdiff((lenNoDem+1):(lenNoDem+lenVeryMildDem),
-                              veryMildDemTestIdx)
-
-mildDemTestIdx <- sample((lenNoDem+lenVeryMildDem+1):
-                          (lenNoDem+lenVeryMildDem+lenMildDem),
-                          round(lenMildDem/4.0), replace = FALSE)
-mildDemTrainIdx <- setdiff((lenNoDem+lenVeryMildDem+1):
-                          (lenNoDem+lenVeryMildDem+lenMildDem),
-                          mildDemTestIdx)
-
-modDemTestIdx <- sample((lenNoDem+lenVeryMildDem+lenMildDem+1):
-                        (lenNoDem+lenVeryMildDem+lenMildDem+lenModDem),
-                        round(lenModDem/4.0), replace = FALSE)
-modDemTrainIdx <- setdiff((lenNoDem+lenVeryMildDem+lenMildDem+1):
-                          (lenNoDem+lenVeryMildDem+lenMildDem+lenModDem),
-                          modDemTestIdx)
-
 x_train <- dementia_data[c(noDemTrainIdx,veryMildDemTrainIdx,
                            mildDemTrainIdx,modDemTrainIdx),,]
 y_train <- classMat[c(noDemTrainIdx,veryMildDemTrainIdx,
@@ -290,7 +280,7 @@ input_shape <- c(img_rows, img_cols, 1)
 
 batch_size <- 32
 num_classes <- 4
-epochs <- 100
+epochs <- 10
 ```
 
 ```{r, eval = FALSE, echo = FALSE}
