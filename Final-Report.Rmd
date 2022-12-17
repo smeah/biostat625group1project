@@ -401,6 +401,10 @@ A key difference in our project compared to other analyses of this data set is t
 
 In summary, we conclude that model 2 is the better model because 1) it actually does predict the moderate dementia case well, contrary to our first intuition that it would perform poorly due to the low sample size, and 2) it performs better on the no dementia and very mild dementia cases.
 
+# Group Contributions
+
+Sabir wrote the data read-in code, set up CUDA with R on his personal machine and used it to train all the CNN models (reducing runtime by up to 2 orders of magnitude), wrote the introduction and data read-in sections in the report and presentation, and performed much of the R Markdown formatting of the final project.
+
 # Citations
 
 Gaikwad, A. (2022, July 22). Ad Detection With 99.53% accuracy. *Kaggle*. Retrieved December 8, 2022, from https://www.kaggle.com/code/akashgw/ad-detection-with-99-53-accuracy 
