@@ -13,6 +13,8 @@ library(keras)
 set.seed(7423)
 ```
 
+All the files for this project, including the full code (non-important code is hidden in this report due to space constraints) and data can be found in its GitHub repo: https://github.com/smeah/biostat625group1project 
+
 # Introduction
 
 Alzheimer's disease is the most common cause of dementia and the 6th leading cause of death in American adults (Alzheimer's Association; CDC).  Despite its large impact on the American populace, the science of its etiology is rapidly evolving and many things about it are still not understood.  Alzheimer's disease is typically diagnosed through clinical evaluation, as dementia is a disease defined by its symptoms, not underlying biological phenomena, but more recently, radiology, such as CT scans, PET scans, and MRIs can inform and support a clinical Alzheimer's disease diagnosis.  
@@ -144,7 +146,7 @@ input_shape <- c(img_rows, img_cols, 1)
 
 batch_size <- 32
 num_classes <- 3
-epochs <- 10
+epochs <- 100
 ```
 
 ```{r, eval = FALSE}
@@ -183,13 +185,13 @@ cnn_history <- mod1 %>% fit(
 predictProbs = predict(mod1, x_test)
 ```
 
-```{r, eval = FALSE}
+```{r, eval = FALSE, echo = FALSE}
 saveRDS(predictProbs, file = "predict_mod1.Rds")
 ```
 
-# Process Model 1 Results
+## Process Model 1 Results
 
-```{r}
+```{r, echo = FALSE}
 predictProbs = readRDS("predict_mod1.Rds")
 ```
 
@@ -201,7 +203,9 @@ for (i in 1:nrow(x_test)) {
   classVec[which(predictProbs[i,] == max(predictProbs[i,]))] <- 1
   predictClass[i,] <- classVec
 }
+```
 
+```{r, echo = FALSE}
 testAccuracyNoDem <- 0.0
 testAccuracyVeryMildDem <- 0.0
 testAccuracyMildModDem <- 0.0
@@ -280,7 +284,7 @@ input_shape <- c(img_rows, img_cols, 1)
 
 batch_size <- 32
 num_classes <- 4
-epochs <- 10
+epochs <- 100
 ```
 
 ```{r, eval = FALSE, echo = FALSE}
@@ -324,14 +328,18 @@ cnn_history <- mod2 %>% fit(
 predictProbs = predict(mod2, x_test)
 ```
 
-```{r, eval = FALSE}
+```{r, eval = FALSE, echo = FALSE}
 saveRDS(predictProbs, file = "predict_mod2.Rds")
 ```
 
-# Process Model 2 Results
+## Process Model 2 Results
 
-```{r}
+```{r, echo = FALSE}
 predictProbs = readRDS("predict_mod2.Rds")
+```
+
+```{r, out.width = '100%', out.height = '50%', fig.align='center', echo = FALSE}
+knitr::include_graphics("mod2_results.png")
 ```
 
 ```{r, echo = FALSE}
