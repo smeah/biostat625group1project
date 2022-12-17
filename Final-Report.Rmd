@@ -238,7 +238,7 @@ knitr::kable(resModel1)
 
 # Model 2: 4 classes with one hot encoding
 
-For the first model we had represented mild dementia and moderate dementia with separate classes, resulting in four distinct classes.
+For the second model we represented mild dementia and moderate dementia with separate classes, resulting in four distinct classes.
 
 ```{r}
 lenNoDem <- 3200
