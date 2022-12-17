@@ -21,7 +21,7 @@ Alzheimer's disease is the most common cause of dementia and the 6th leading cau
 
 On that line of thinking, we set off to create a machine learning model that can accurately predict the presence of Alzheimer's disease from MRI imaging.  We used an Alzheimer’s MRI imaging dataset from Kaggle. The data includes a total of 6400 MRI images from individuals classified into four stages: no dementia, very mild dementia, mild dementia, and moderate dementia, with each successive class being smaller than the last.  Each MRI result is a 128x128 .jpg image.  The images have been preprocessed so that they are of a standard form and orientation, but we still will need to do the step of processing the data and gray scale standardization from .jpg images into a tabular format suitable for standard R functions. 
 
-We used convolutional neural networks (CNNs) to learn discriminative models for the dementia classes.  Since the 4th class (moderate dementia) had a small sample size, we compared model performance between a three class representation of dementia progression (with the two smallest classes, moderate and mild dementia, pooled together) and a four class representation of dementia progression.
+We used convolutional neural networks (CNNs) to learn discriminative models for the dementia classes.  Since the 4th class (moderate dementia) had a small sample size, we compared model performance between a three class representation of dementia progression (with the two smallest classes, moderate and mild dementia, pooled together) and a four class representation of dementia progression.  
 
 # Data Read-In
 
@@ -346,8 +346,8 @@ saveRDS(predictProbs, file = "predict_mod2.Rds")
 predictProbs = readRDS("predict_mod2.Rds")
 ```
 
-```{r, out.width = '100%', out.height = '50%', fig.align='center', echo = FALSE}
-knitr::include_graphics("mod2_results.png")
+```{r, out.width = '49%', out.height = '50%', fig.align='center', fig.show = 'hold', echo = FALSE}
+knitr::include_graphics(c("mod2_loss.png", "mod2_accuracy.png"))
 ```
 
 ```{r, echo = FALSE}
@@ -397,13 +397,13 @@ knitr::kable(resModel2)
 
 # Conclusion
 
-A key difference in our project compared to other analyses of this data set is that we compared model performance between a three class representation of dementia progression and a four class representation of dementia progression. As shown in the results, the out of sample prediction for the no dementia and very mild dementia cases improved in model 2, but the mild + moderate dementia out of sample prediction in model 1 performed better than the mild dementia out of sample prediction in model 2. However, model 2 achieved perfection out of sample prediction for the moderate dementia cases, but this is not a very reliable result given that there were only 16 data points for the moderate dementia.
+As shown in the results, the out of sample prediction for the no dementia and very mild dementia cases improved in model 2, but the mild + moderate dementia out of sample prediction in model 1 performed better than the mild dementia out of sample prediction in model 2. However, model 2 achieved perfection out of sample prediction for the moderate dementia cases, but this is not a very reliable result given that there were only 16 data points for the moderate dementia.
 
 In summary, we conclude that model 2 is the better model because 1) it actually does predict the moderate dementia case well, contrary to our first intuition that it would perform poorly due to the low sample size, and 2) it performs better on the no dementia and very mild dementia cases.
 
 # Group Contributions
 
-Sabir wrote the data read-in code, set up CUDA with R on his personal machine and used it to train all the CNN models (reducing runtime by up to 2 orders of magnitude), wrote the introduction and data read-in sections in the report and presentation, and performed much of the R Markdown formatting of the final project.
+Sabir set up CUDA with R on his personal machine and used it to train all the CNN models (reducing runtime by up to 2 orders of magnitude), wrote the introduction and data read-in code and their associated report text, and performed the R Markdown formatting of the final report.
 
 Michael wrote the code to stratify the training and testing splits by class and wrote the code containing the CNN architectures + model fitting.
 
