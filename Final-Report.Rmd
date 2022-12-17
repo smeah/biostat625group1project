@@ -405,6 +405,10 @@ In summary, we conclude that model 2 is the better model because 1) it actually 
 
 Sabir wrote the data read-in code, set up CUDA with R on his personal machine and used it to train all the CNN models (reducing runtime by up to 2 orders of magnitude), wrote the introduction and data read-in sections in the report and presentation, and performed much of the R Markdown formatting of the final project.
 
+Michael wrote the code to stratify the training and testing splits by class and wrote the code containing the CNN architectures + model fitting.
+
+Liyang calculated the predictive performance metrics and compiled the data frames of the results using the estimated CNN models.
+
 # Citations
 
 Gaikwad, A. (2022, July 22). Ad Detection With 99.53% accuracy. *Kaggle*. Retrieved December 8, 2022, from https://www.kaggle.com/code/akashgw/ad-detection-with-99-53-accuracy 
