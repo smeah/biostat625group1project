@@ -197,7 +197,7 @@ predictProbs = predict(mod1, x_test)
 saveRDS(predictProbs, file = "predict_mod1.Rds")
 ```
 
-### Process Model 1 Results
+### Model 1 Out-of-Sample Accuracy
 
 ```{r, echo = FALSE}
 predictProbs = readRDS("predict_mod1.Rds")
@@ -340,7 +340,7 @@ predictProbs = predict(mod2, x_test)
 saveRDS(predictProbs, file = "predict_mod2.Rds")
 ```
 
-### Process Model 2 Results
+### Model 2 Out-of-Sample Accuracy
 
 ```{r, echo = FALSE}
 predictProbs = readRDS("predict_mod2.Rds")
