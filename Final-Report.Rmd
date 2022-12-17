@@ -387,5 +387,28 @@ resModel2 <- data.frame("No Dementia" = testAccuracyNoDem,
 knitr::kable(resModel2)
 ```
 
+# Conclusion
+
+A key difference in our project compared to other analyses of this data set is that we compared model performance between a three class representation of dementia progression and a four class representation of dementia progression. As shown in the results, the out of sample prediction for the no dementia and very mild dementia cases improved in model 2, but the mild + moderate dementia out of sample prediction in model 1 performed better than the mild dementia out of sample prediction in model 2. However, model 2 achieved perfection out of sample prediction for the moderate dementia cases, but this is not a very reliable result given that there were only 16 data points for the moderate dementia.
+
+In summary, we conclude that model 2 is the better model because 1) it actually does predict the moderate dementia case well, contrary to our first intuition that it would perform poorly due to the low sample size, and 2) it performs better on the no dementia and very mild dementia cases.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
