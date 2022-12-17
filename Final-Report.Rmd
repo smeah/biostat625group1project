@@ -17,9 +17,11 @@ All the files for this project, including the full code (non-important code is h
 
 # Introduction
 
-Alzheimer's disease is the most common cause of dementia and the 6th leading cause of death in American adults (Alzheimer's Association; CDC).  Despite its large impact on the American populace, the science of its etiology is rapidly evolving and many things about it are still not understood.  Alzheimer's disease is typically diagnosed through clinical evaluation, as dementia is a disease defined by its symptoms, not underlying biological phenomena, but more recently, radiology, such as CT scans, PET scans, and MRIs can inform and support a clinical Alzheimer's disease diagnosis.  
+Alzheimer's disease is the most common cause of dementia and the 6th leading cause of death in American adults.  Despite its large impact on the American populace, the science of its etiology is rapidly evolving and many things about it are still not understood.  Alzheimer's disease is typically diagnosed through clinical evaluation, as dementia is a disease defined by its symptoms, not underlying biological phenomena, but more recently, radiology, such as CT scans, PET scans, and MRIs can inform and support a clinical Alzheimer's disease diagnosis.  
 
-On that line of thinking, we set off to create a machine learning model that can accurately predict the presence of Alzheimer's disease from MRI imaging.  We used an Alzheimer’s MRI imaging dataset from Kaggle. The data includes a total of 6400 MRI images from individuals classified into four stages: no dementia, very mild dementia, mild dementia, and moderate dementia, with each successive class being smaller than the last.  Each MRI result is a 128x128 .jpg image.  The images have been preprocessed so that they are of a standard form and orientation, but we still will need to do the step of processing the data and gray scale standardization from .jpg images into a tabular format suitable for standard R functions. We used convolutional neural networks (CNNs) to learn discriminative models for the dementia classes.
+On that line of thinking, we set off to create a machine learning model that can accurately predict the presence of Alzheimer's disease from MRI imaging.  We used an Alzheimer’s MRI imaging dataset from Kaggle. The data includes a total of 6400 MRI images from individuals classified into four stages: no dementia, very mild dementia, mild dementia, and moderate dementia, with each successive class being smaller than the last.  Each MRI result is a 128x128 .jpg image.  The images have been preprocessed so that they are of a standard form and orientation, but we still will need to do the step of processing the data and gray scale standardization from .jpg images into a tabular format suitable for standard R functions. 
+
+We used convolutional neural networks (CNNs) to learn discriminative models for the dementia classes.  Since the 4th class (moderate dementia) had a small sample size, we compared model performance between a three class representation of dementia progression (with the two smallest classes, moderate and mild dementia, pooled together) and a four class representation of dementia progression.
 
 # Data Read-In
 
@@ -33,7 +35,9 @@ for (i in 1:3200){
 }
 ```
 
-```{r}
+The other classes were read in similarly, then the arrays were combined into one large array we named `dementia_data`.
+
+```{r, echo = FALSE}
 verymild_dementia <- array(NA, dim = c(2240, 128, 128))
 for (i in 1:2240){
   verymild_dementia[i,,] <- readJPEG(paste0(getwd(), 
@@ -41,7 +45,7 @@ for (i in 1:2240){
 }
 ```
 
-```{r}
+```{r, echo = FALSE}
 mild_dementia <- array(NA, dim = c(896, 128, 128))
 for (i in 1:896){
   mild_dementia[i,,] <- readJPEG(paste0(getwd(), 
@@ -49,7 +53,7 @@ for (i in 1:896){
 }
 ```
 
-```{r}
+```{r, echo = FALSE}
 moderate_dementia <- array(NA, dim = c(64, 128, 128))
 for (i in 1:64){
   moderate_dementia[i,,] <- readJPEG(paste0(getwd(), 
@@ -57,7 +61,7 @@ for (i in 1:64){
 }
 ```
 
-```{r}
+```{r, echo = FALSE}
 lenNoDem <- 3200
 lenVeryMildDem <- 2240
 lenMildDem <- 896
@@ -65,7 +69,7 @@ lenModDem <- 64
 totalLen <- lenNoDem + lenVeryMildDem + lenMildDem + lenModDem
 ```
 
-```{r}
+```{r, echo = FALSE}
 dementia_data <- array(NA, dim = c(6400, 128, 128))
 dementia_data[1:lenNoDem,,] <- no_dementia
 dementia_data[3201:(lenNoDem + lenVeryMildDem),,] <- verymild_dementia
@@ -397,11 +401,11 @@ A key difference in our project compared to other analyses of this data set is t
 
 In summary, we conclude that model 2 is the better model because 1) it actually does predict the moderate dementia case well, contrary to our first intuition that it would perform poorly due to the low sample size, and 2) it performs better on the no dementia and very mild dementia cases.
 
+# Citations
 
+Gaikwad, A. (2022, July 22). Ad Detection With 99.53% accuracy. *Kaggle*. Retrieved December 8, 2022, from https://www.kaggle.com/code/akashgw/ad-detection-with-99-53-accuracy 
 
-
-
-
+Kumar, S., & Shastri, S. (2022, March). Alzheimer MRI Preprocessed Dataset. *Kaggle*. Retrieved November 20, 2022, from Kaggle. https://www.kaggle.com/datasets/sachinkumar413/alzheimer-mri-dataset
 
 
 
